@@ -438,7 +438,7 @@
       const mesi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
       const hh = String(now.getHours()).padStart(2, '0');
       const mm = String(now.getMinutes()).padStart(2, '0');
-      document.getElementById('dateLine').textContent = ${giorni[now.getDay()]} ${now.getDate()} ${mesi[now.getMonth()]} · ${hh}:${mm};
+      document.getElementById('dateLine').textContent = `${giorni[now.getDay()]} ${now.getDate()} ${mesi[now.getMonth()]} · ${hh}:${mm}`;
     }
 
     function hourLabel(date) {
@@ -475,7 +475,7 @@
       if (mins >= sunriseM - 20 && mins <= sunriseM + 35) key = 'alba';
       if (mins >= sunsetM - 35 && mins <= sunsetM + 25) key = 'tramonto';
 
-      bg.style.backgroundImage = url('${backgrounds[key] || backgrounds['poco-nuvoloso']}');
+      bg.style.backgroundImage = `url('${backgrounds[key] || backgrounds['poco-nuvoloso']}')`;
     }
 
     function renderHours(hourlyItems) {
@@ -520,7 +520,7 @@
       formatDateLine();
       document.getElementById('moonLine').textContent = moonPhaseName(new Date());
 
-      const url = https://api.open-meteo.com/v1/forecast?latitude=${BRESCIA.lat}&longitude=${BRESCIA.lon}&timezone=${encodeURIComponent(BRESCIA.tz)}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max;
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${BRESCIA.lat}&longitude=${BRESCIA.lon}&timezone=${encodeURIComponent(BRESCIA.tz)}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max`;
       const res = await fetch(url, { cache: 'no-store' });
       if (!res.ok) throw new Error('Errore meteo');
       const data = await res.json();
@@ -531,14 +531,14 @@
       const currentMap = mapCode(data.current.weather_code, data.current.is_day === 0);
 
       document.getElementById('currentCondition').textContent = currentMap.label;
-      document.getElementById('currentTemp').textContent = ${Math.round(data.current.temperature_2m)}°;
-      document.getElementById('minMaxLine').textContent = Min ${Math.round(data.daily.temperature_2m_min[0])}° · Max ${Math.round(data.daily.temperature_2m_max[0])}°;
-      document.getElementById('humidityLine').textContent = Umidità ${Math.round(data.current.relative_humidity_2m)}%;
+      document.getElementById('currentTemp').textContent = `${Math.round(data.current.temperature_2m)}°`;
+      document.getElementById('minMaxLine').textContent = `Min ${Math.round(data.daily.temperature_2m_min[0])}° · Max ${Math.round(data.daily.temperature_2m_max[0])}°`;
+      document.getElementById('humidityLine').textContent = `Umidità ${Math.round(data.current.relative_humidity_2m)}%`;
 
       document.getElementById('sunLine').textContent =
         (now >= sunset)
-          ? Alba ${String(sunrise.getHours()).padStart(2, '0')}:${String(sunrise.getMinutes()).padStart(2, '0')}
-          : Tramonto ${String(sunset.getHours()).padStart(2, '0')}:${String(sunset.getMinutes()).padStart(2, '0')};
+          ? `Alba ${String(sunrise.getHours()).padStart(2, '0')}:${String(sunrise.getMinutes()).padStart(2, '0')}`
+          : `Tramonto ${String(sunset.getHours()).padStart(2, '0')}:${String(sunset.getMinutes()).padStart(2, '0')}`;
 
       applyBackground(
         now >= sunset || now < sunrise

@@ -14,13 +14,6 @@
     }
 
     @font-face {
-      font-family: 'Gotham';
-      src: url('./fonts/Gotham-Bold.otf') format('opentype');
-      font-weight: 700;
-      font-style: normal;
-    }
-
-    @font-face {
       font-family: 'GothamBlack';
       src: url('./fonts/Gotham-Black.otf') format('opentype');
       font-weight: 900;
@@ -38,10 +31,10 @@
       --text: rgba(255,255,255,0.98);
       --muted: rgba(255,255,255,0.93);
       --soft: rgba(255,255,255,0.82);
-      --glass: rgba(255,255,255,0.085);
-      --glass-2: rgba(255,255,255,0.035);
-      --glass-border: rgba(255,255,255,0.18);
-      --line: rgba(255,255,255,0.14);
+      --glass: rgba(255,255,255,0.075);
+      --glass-2: rgba(255,255,255,0.03);
+      --glass-border: rgba(255,255,255,0.16);
+      --line: rgba(255,255,255,0.12);
       --shadow: 0 16px 40px rgba(0,0,0,0.18);
       --radius: 30px;
     }
@@ -82,7 +75,7 @@
       background-repeat: no-repeat;
       background-size: cover;
       transform: scale(1.08);
-      will-change: transform, background-image;
+      will-change: transform;
       transition: background-image 0.8s ease;
       animation: bgMove 36s ease-in-out infinite alternate;
     }
@@ -105,8 +98,8 @@
       z-index: 1;
       pointer-events: none;
       background:
-        radial-gradient(circle at 78% 16%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 14%, rgba(255,255,255,0) 28%),
-        linear-gradient(90deg, rgba(7,12,22,0.18) 0%, rgba(7,12,22,0.06) 30%, rgba(7,12,22,0.02) 55%, rgba(7,12,22,0.05) 100%),
+        radial-gradient(circle at 78% 16%, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 14%, rgba(255,255,255,0) 28%),
+        linear-gradient(90deg, rgba(7,12,22,0.16) 0%, rgba(7,12,22,0.06) 30%, rgba(7,12,22,0.02) 55%, rgba(7,12,22,0.04) 100%),
         linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(0,0,0,0.10) 100%);
     }
 
@@ -155,6 +148,7 @@
       line-height: 1.2;
       color: var(--soft);
       text-shadow: 0 2px 10px rgba(0,0,0,0.10);
+      text-transform: capitalize;
     }
 
     .temp-main {
@@ -233,11 +227,11 @@
       gap: 2.2vh;
       padding-top: 16vh;
       padding-bottom: 2.8vh;
-      padding-right: 0.8vw;
+      padding-right: 1.8vw; /* rientra di più a sinistra */
     }
 
     .card {
-      width: 87.5%;
+      width: 85%;
       margin-left: auto;
       position: relative;
       overflow: hidden;
@@ -321,6 +315,7 @@
       object-fit: contain;
       display: block;
       filter: brightness(0) invert(1);
+      transform: translateY(1px);
     }
 
     .hour-temp {
@@ -344,7 +339,8 @@
     /* TABELLA GIORNI */
     .days-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr 1fr 1.35fr;
+      /* Colonne allineate con la logica della tabella sopra */
+      grid-template-columns: 1.8fr 1fr 1fr 1fr 1fr;
       align-items: center;
       width: 100%;
     }
@@ -357,8 +353,7 @@
       text-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
-    .days-head.left-empty,
-    .days-head.icon-empty {
+    .days-head.left-empty {
       color: transparent;
       user-select: none;
     }
@@ -394,6 +389,7 @@
       object-fit: contain;
       display: block;
       filter: brightness(0) invert(1);
+      transform: translateY(1px);
     }
   </style>
 </head>
@@ -444,7 +440,7 @@
 
           <div class="left-item">
             <img src="./icons/wind.svg" alt="">
-            <span id="airLine">Aria: Buona</span>
+            <span id="airLine">Aria AQI --</span>
           </div>
         </div>
       </section>
@@ -561,7 +557,7 @@
       if ([45, 48].includes(code)) return 'cloud.svg';
       if ([51, 53, 55].includes(code)) return 'light-rain.svg';
       if ([61, 63, 65, 80, 81, 82].includes(code)) return 'rain.svg';
-      if ([71, 73, 75, 77].includes(code)) return 'snow-flake.svg';
+      if ([71, 73, 75, 77, 85, 86].includes(code)) return 'snow-flake.svg';
       if ([95].includes(code)) return 'thunder.svg';
       if ([96, 99].includes(code)) return 'storm.svg';
       return 'cloud.svg';
@@ -640,7 +636,7 @@
       const grid = document.getElementById('daysGrid');
       grid.innerHTML = `
         <div class="days-head left-empty">.</div>
-        <div class="days-head icon-empty">.</div>
+        <div class="days-head"></div>
         <div class="days-head">Min</div>
         <div class="days-head">Max</div>
         <div class="days-head">Vento</div>
@@ -659,12 +655,28 @@
 
     async function init() {
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${BRESCIA.lat}&longitude=${BRESCIA.lon}&timezone=${encodeURIComponent(BRESCIA.tz)}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max`;
+        const weatherUrl =
+          `https://api.open-meteo.com/v1/forecast?latitude=${BRESCIA.lat}&longitude=${BRESCIA.lon}` +
+          `&timezone=${encodeURIComponent(BRESCIA.tz)}` +
+          `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day` +
+          `&hourly=temperature_2m,weather_code,wind_speed_10m` +
+          `&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,wind_speed_10m_max`;
 
-        const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error('Errore meteo');
+        const airUrl =
+          `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${BRESCIA.lat}&longitude=${BRESCIA.lon}` +
+          `&timezone=${encodeURIComponent(BRESCIA.tz)}` +
+          `&current=european_aqi`;
 
-        const data = await res.json();
+        const [weatherRes, airRes] = await Promise.all([
+          fetch(weatherUrl, { cache: 'no-store' }),
+          fetch(airUrl, { cache: 'no-store' })
+        ]);
+
+        if (!weatherRes.ok) throw new Error('Errore meteo');
+        if (!airRes.ok) throw new Error('Errore aria');
+
+        const data = await weatherRes.json();
+        const airData = await airRes.json();
 
         const now = new Date();
         const sunrise = new Date(data.daily.sunrise[0]);
@@ -694,7 +706,9 @@
         document.getElementById('zodiacSymbol').textContent = zodiac.symbol;
         document.getElementById('zodiacName').textContent = zodiac.name;
 
-        document.getElementById('airLine').textContent = 'Aria: Buona';
+        const aqi = airData?.current?.european_aqi;
+        document.getElementById('airLine').textContent =
+          aqi != null ? `Aria AQI ${Math.round(aqi)}` : 'Aria AQI n.d.';
 
         const bgKey = getBackgroundKey(
           data.current.weather_code,
@@ -710,7 +724,15 @@
         if (startIdx < 0) startIdx = 0;
 
         const hourlyItems = [];
-        for (let i = 0; i < 5; i++) {
+
+        hourlyItems.push({
+          label: 'Adesso',
+          icon: getWeatherIcon(data.current.weather_code, data.current.is_day === 1),
+          temp: Math.round(data.current.temperature_2m),
+          wind: Math.round(data.current.wind_speed_10m)
+        });
+
+        for (let i = 1; i < 5; i++) {
           const idx = Math.min(startIdx + i, times.length - 1);
           const t = times[idx];
           const isDayForHour = t >= sunrise && t < sunset;
@@ -722,6 +744,7 @@
             wind: Math.round(data.hourly.wind_speed_10m[idx])
           });
         }
+
         renderHours(hourlyItems);
 
         const dailyItems = [];

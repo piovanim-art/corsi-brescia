@@ -275,19 +275,27 @@
     }
 
     .moon-card {
-      padding: 2vh 1.2vw 1.9vh;
+      padding: 1.8vh 1.2vw 1.7vh;
     }
 
-    /* GENERIC 5 COL */
     .hours-grid,
     .days-grid,
     .moon-grid {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
       align-items: start;
       justify-items: center;
       text-align: center;
       column-gap: 0;
+    }
+
+    .hours-grid,
+    .days-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .moon-grid {
+      grid-template-columns: 1.1fr 1.2fr 1.2fr 1.2fr 1fr;
+      align-items: center;
     }
 
     .hour-col,
@@ -302,21 +310,35 @@
       padding: 0 0.2vw;
     }
 
+    .moon-col {
+      min-height: 112px;
+      justify-content: center;
+      padding: 0 0.35vw;
+    }
+
     .hour-col + .hour-col::before,
     .day-col + .day-col::before,
     .moon-col + .moon-col::before {
       content: "";
       position: absolute;
       left: 0;
-      top: 2.8vh;
-      bottom: 0.7vh;
       width: 1px;
       background: rgba(255,255,255,0.18);
     }
 
+    .hour-col + .hour-col::before,
+    .day-col + .day-col::before {
+      top: 2.8vh;
+      bottom: 0.7vh;
+    }
+
+    .moon-col + .moon-col::before {
+      top: 12%;
+      bottom: 12%;
+    }
+
     .hour-label,
-    .day-label,
-    .moon-label {
+    .day-label {
       min-height: 1.4em;
       display: flex;
       align-items: center;
@@ -331,14 +353,12 @@
       font-size: clamp(18px, 1.2vw, 27px);
     }
 
-    .day-label,
-    .moon-label {
+    .day-label {
       font-size: clamp(20px, 1.35vw, 26px);
     }
 
     .hour-icon,
-    .day-icon,
-    .moon-icon {
+    .day-icon {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -411,14 +431,18 @@
       text-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
 
-    /* MOON */
-    .moon-icon {
-      width: 86px;
-      height: 86px;
+    /* MOON CARD */
+    .moon-image-wrap {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      overflow: hidden;
       position: relative;
-      margin-top: 0.2vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      filter: drop-shadow(0 0 18px rgba(255,255,255,0.18));
       animation: moonFloat 7s ease-in-out infinite;
-      filter: drop-shadow(0 0 14px rgba(255,255,255,0.18));
     }
 
     @keyframes moonFloat {
@@ -426,79 +450,78 @@
       50% { transform: translateY(-2px) scale(1.02); }
     }
 
-    .moon-disc {
-      position: relative;
-      width: 86px;
-      height: 86px;
-      border-radius: 50%;
-      overflow: hidden;
-      background: #000;
-      box-shadow: inset 0 0 12px rgba(255,255,255,0.12);
-    }
-
-    .moon-disc img {
+    .moon-image-wrap img {
       width: 100%;
       height: 100%;
       object-fit: cover;
+      object-position: center center;
       display: block;
       border-radius: 50%;
     }
 
-    .moon-shadow {
+    .moon-phase-shadow {
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
       border-radius: 50%;
-      background: rgba(0,0,0,0.92);
-      transform: translateX(0%);
-      transition: transform 0.8s ease;
+      background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.95) 100%);
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      transition: transform 0.6s ease;
     }
 
-    .moon-value {
-      margin-top: 0.9vh;
-      font-size: clamp(18px, 1.15vw, 22px);
-      line-height: 1.2;
-      color: rgba(255,255,255,0.96);
+    .moon-main-text {
+      font-size: clamp(22px, 1.45vw, 28px);
+      line-height: 1.15;
+      color: rgba(255,255,255,0.97);
       text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-      min-height: 2.4em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 0.2vw;
     }
 
-    .moon-value.big {
-      font-size: clamp(24px, 1.65vw, 30px);
+    .moon-big-number {
+      font-size: clamp(24px, 1.7vw, 32px);
+      line-height: 1.05;
+      color: #fff;
       font-family: 'GothamBold', 'Gotham', Arial, sans-serif;
-      min-height: 1.4em;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
 
-    .moon-value.small {
-      font-size: clamp(16px, 1vw, 19px);
-      color: rgba(255,255,255,0.82);
-      min-height: 1.3em;
+    .moon-days {
+      font-size: clamp(20px, 1.45vw, 28px);
+      line-height: 1.05;
+      color: #fff;
+      font-family: 'GothamBold', 'Gotham', Arial, sans-serif;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
 
-    .zodiac-wrap {
+    .moon-label-small {
+      font-size: clamp(14px, 0.9vw, 17px);
+      line-height: 1.1;
+      color: rgba(255,255,255,0.72);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-top: 0.35vh;
+    }
+
+    .zodiac-final {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.55vh;
-      margin-top: 0.3vh;
+      justify-content: center;
+      gap: 0.5vh;
     }
 
-    .zodiac-wrap img {
-      width: 42px;
-      height: 42px;
+    .zodiac-final img {
+      width: 44px;
+      height: 44px;
       object-fit: contain;
       filter: brightness(0) invert(1);
       display: block;
     }
 
-    .zodiac-wrap .moon-value {
-      margin-top: 0;
-      min-height: unset;
+    .zodiac-final-name {
+      font-size: clamp(17px, 1.05vw, 20px);
+      line-height: 1.1;
+      color: rgba(255,255,255,0.95);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
   </style>
 </head>
@@ -853,35 +876,30 @@
       const grid = document.getElementById('moonGrid');
       grid.innerHTML = `
         <div class="moon-col">
-          <div class="moon-label">Luna</div>
-          <div class="moon-icon">
-            <div class="moon-disc">
-              <img src="./images/moon.jpg" alt="Moon">
-              <div class="moon-shadow" style="transform: translateX(${moon.shadowOffset});"></div>
-            </div>
+          <div class="moon-image-wrap">
+            <img src="./images/moon.jpg" alt="Moon">
+            <div class="moon-phase-shadow" style="transform: translateX(${moon.shadowOffset});"></div>
           </div>
         </div>
 
         <div class="moon-col">
-          <div class="moon-label">Fase</div>
-          <div class="moon-value">${moon.phaseName}</div>
+          <div class="moon-main-text">${moon.phaseName}</div>
         </div>
 
         <div class="moon-col">
-          <div class="moon-label">Illuminazione</div>
-          <div class="moon-value big">${moon.illumination}%</div>
+          <div class="moon-big-number">${moon.illumination}%</div>
+          <div class="moon-label-small">Illuminazione</div>
         </div>
 
         <div class="moon-col">
-          <div class="moon-label">Prossima piena</div>
-          <div class="moon-value big">${moon.nextFullDays} gg</div>
+          <div class="moon-days">${moon.nextFullDays} giorni</div>
+          <div class="moon-label-small">Prossima piena</div>
         </div>
 
         <div class="moon-col">
-          <div class="moon-label">Zodiac</div>
-          <div class="zodiac-wrap">
+          <div class="zodiac-final">
             <img src="${zodiacAssets[zodiac.name]}" alt="${zodiac.name}">
-            <div class="moon-value small">${zodiac.name}</div>
+            <div class="zodiac-final-name">${zodiac.name}</div>
           </div>
         </div>
       `;

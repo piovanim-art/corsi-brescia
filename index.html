@@ -1,994 +1,278 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Meteo Brescia</title>
+<meta charset="UTF-8">
+<title>Meteo Brescia Live</title>
 
-  <style>
-    @font-face {
-      font-family: 'Gotham';
-      src: url('./fonts/Gotham-Book.otf') format('opentype');
-      font-weight: 400;
-      font-style: normal;
-    }
+<style>
+body {
+  margin:0;
+  font-family: Arial, sans-serif;
+  color:white;
+  background:#0b1a2a;
+}
 
-    @font-face {
-      font-family: 'GothamBlack';
-      src: url('./fonts/Gotham-Black.otf') format('opentype');
-      font-weight: 900;
-      font-style: normal;
-    }
+/* LEFT */
+.left { position:absolute; left:5%; top:8%; }
+.city { font-size:70px; font-weight:bold; }
+.desc { font-size:28px; margin-top:10px; }
+.date { opacity:0.7; margin-top:5px; }
+.temp { font-size:140px; margin-top:20px; }
+.minmax { font-size:24px; opacity:0.8; }
 
-    @font-face {
-      font-family: 'GothamBold';
-      src: url('./fonts/Gotham-Bold.otf') format('opentype');
-      font-weight: 700;
-      font-style: normal;
-    }
+.bottom-left { margin-top:40px; display:flex; flex-direction:column; gap:12px; }
+.line { display:flex; align-items:center; gap:10px; }
+.line img { width:22px; }
 
-    @font-face {
-      font-family: 'GothamXLight';
-      src: url('./fonts/Gotham-XLight.otf') format('opentype');
-      font-weight: 200;
-      font-style: normal;
-    }
+/* UV */
+.uv.low img { filter:hue-rotate(80deg); }
+.uv.medium img { filter:hue-rotate(20deg); }
+.uv.high img { filter:hue-rotate(0deg); }
 
-    :root {
-      --text: rgba(255,255,255,0.98);
-      --muted: rgba(255,255,255,0.92);
-      --soft: rgba(255,255,255,0.78);
-      --glass: rgba(12, 22, 38, 0.56);
-      --glass-2: rgba(12, 22, 38, 0.40);
-      --glass-dark: rgba(5, 10, 22, 0.74);
-      --glass-dark-2: rgba(8, 14, 28, 0.56);
-      --glass-border: rgba(255,255,255,0.20);
-      --shadow: 0 20px 50px rgba(0,0,0,0.30);
-      --radius: 30px;
-    }
+/* AIR */
+.air.good img { filter:hue-rotate(80deg); }
+.air.medium img { filter:hue-rotate(20deg); }
+.air.bad img { filter:hue-rotate(0deg); }
 
-    * {
-      box-sizing: border-box;
-    }
+/* RIGHT */
+.right { position:absolute; right:5%; top:12%; }
+.box {
+  background:rgba(40,60,80,0.6);
+  backdrop-filter:blur(20px);
+  border-radius:25px;
+  padding:20px;
+  margin-bottom:20px;
+}
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      background: #07111e;
-      color: var(--text);
-      font-family: 'Gotham', Arial, sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+.row { display:flex; gap:25px; align-items:center; }
 
-    .app {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      background: #07111e;
-    }
+.hour { text-align:center; }
+.hour img { width:60px; }
+.hour-now img { width:95px; }
 
-    .bg {
-      position: absolute;
-      inset: -5%;
-      z-index: 0;
-      background-position: center center;
-      background-repeat: no-repeat;
-      background-size: cover;
-      transform: scale(1.08);
-      transition: background-image 0.8s ease, filter 1.2s ease;
-      animation: bgMove 36s ease-in-out infinite alternate;
-      filter: brightness(1) saturate(1);
-    }
+/* ASTRO */
+.astro { display:flex; justify-content:space-between; align-items:center; }
 
-    @keyframes bgMove {
-      0%   { transform: scale(1.08) translate3d(0%, 0%, 0); }
-      50%  { transform: scale(1.13) translate3d(-2.2%, -1.2%, 0); }
-      100% { transform: scale(1.10) translate3d(1.7%, 1.3%, 0); }
-    }
+.moon-circle {
+  width:100px; height:100px;
+  border-radius:50%;
+  background:black;
+  position:relative;
+  overflow:hidden;
+}
 
-    .overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 78% 14%, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 14%, rgba(255,255,255,0) 28%),
-        linear-gradient(90deg, rgba(7,12,22,0.16) 0%, rgba(7,12,22,0.06) 30%, rgba(7,12,22,0.02) 55%, rgba(7,12,22,0.04) 100%),
-        linear-gradient(180deg, rgba(255,255,255,0.02) 0%, rgba(0,0,0,0.10) 100%);
-      transition: opacity 1s ease;
-    }
+.moon-shadow {
+  position:absolute;
+  top:0;
+  height:100%;
+  background:black;
+}
 
-    .stage {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      height: 100%;
-      display: grid;
-      grid-template-columns: 35% 65%;
-      gap: 1.4vw;
-      align-items: center;
-      padding: 4vh 3vw;
-      opacity: 0;
-      transition: opacity 0.35s ease;
-    }
+.zodiac-circle {
+  width:100px; height:100px;
+  border-radius:50%;
+  background:black;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.zodiac-circle img { width:50px; filter:invert(1); }
 
-    .app.ready .stage {
-      opacity: 1;
-    }
-
-    /* LEFT */
-    .left {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: flex-start;
-      max-width: 34vw;
-      padding-left: 0.8vw;
-    }
-
-    .city {
-      margin: 0;
-      font-family: 'GothamBlack', Arial, sans-serif;
-      font-size: clamp(70px, 5.7vw, 124px);
-      line-height: 0.9;
-      letter-spacing: -0.05em;
-      text-transform: uppercase;
-      text-shadow: 0 3px 14px rgba(0,0,0,0.16);
-    }
-
-    .condition {
-      margin-top: 1.9vh;
-      font-size: clamp(24px, 1.9vw, 38px);
-      line-height: 1.14;
-      color: var(--muted);
-      text-shadow: 0 2px 10px rgba(0,0,0,0.12);
-    }
-
-    .date {
-      margin-top: 0.9vh;
-      font-size: clamp(18px, 1.3vw, 26px);
-      line-height: 1.2;
-      color: var(--soft);
-      text-transform: capitalize;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    }
-
-    .temp-block {
-      margin-top: 2.2vh;
-    }
-
-    .temp-main {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(160px, 12.2vw, 255px);
-      line-height: 0.82;
-      letter-spacing: -0.10em;
-      text-shadow: 0 6px 20px rgba(0,0,0,0.14);
-    }
-
-    .minmax-line {
-      margin-top: 0.7vh;
-      font-size: clamp(28px, 1.85vw, 38px);
-      line-height: 1.1;
-      color: var(--muted);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.10);
-    }
-
-    .bottom-meta {
-      margin-top: 7.6vh;
-      display: flex;
-      flex-direction: column;
-      gap: 1.45vh;
-      align-items: flex-start;
-    }
-
-    .bottom-line {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(28px, 1.85vw, 38px);
-      line-height: 1.08;
-      color: rgba(255,255,255,0.94);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    }
-
-    .bottom-line img {
-      width: 28px;
-      height: 28px;
-      object-fit: contain;
-      display: block;
-      filter: brightness(0) invert(1);
-      opacity: 0.96;
-    }
-
-    /* RIGHT */
-    .right {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      gap: 2.2vh;
-      padding-top: 12vh;
-      padding-bottom: 2.8vh;
-      padding-right: 1.8vw;
-    }
-
-    .card {
-      width: 85%;
-      margin-left: auto;
-      position: relative;
-      overflow: hidden;
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, var(--glass), var(--glass-2));
-      border: 1px solid var(--glass-border);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px) saturate(120%);
-      -webkit-backdrop-filter: blur(18px) saturate(120%);
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(
-        180deg,
-        rgba(255,255,255,0.06),
-        rgba(255,255,255,0.015) 40%,
-        rgba(0,0,0,0.15)
-      );
-    }
-
-    .space-card {
-      background: linear-gradient(180deg, var(--glass-dark), var(--glass-dark-2));
-      box-shadow:
-        0 20px 50px rgba(0,0,0,0.36),
-        0 0 30px rgba(125,155,255,0.08);
-    }
-
-    .space-card::before {
-      background:
-        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.08), rgba(255,255,255,0.00) 30%),
-        radial-gradient(circle at 72% 35%, rgba(160,190,255,0.08), rgba(160,190,255,0.00) 28%),
-        linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01) 35%, rgba(0,0,0,0.18));
-    }
-
-    .hours-card {
-      padding: 2.2vh 1.25vw 1.95vh;
-    }
-
-    .days-card {
-      padding: 2.15vh 1.2vw 1.7vh;
-    }
-
-    .astro-card {
-      padding: 2vh 1.35vw 1.9vh;
-      min-height: 158px;
-    }
-
-    .hours-grid,
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      align-items: start;
-      justify-items: center;
-      text-align: center;
-      column-gap: 0;
-    }
-
-    .hour-col,
-    .day-col {
-      width: 100%;
-      position: relative;
-      padding: 0 0.25vw;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-    }
-
-    .hour-col + .hour-col::before,
-    .day-col + .day-col::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      width: 1px;
-      background: rgba(255,255,255,0.18);
-      top: 2.8vh;
-      bottom: 0.7vh;
-    }
-
-    .hour-label,
-    .day-label {
-      min-height: 1.4em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 1vh;
-      color: rgba(255,255,255,0.95);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-      text-transform: capitalize;
-    }
-
-    .hour-label {
-      font-size: clamp(18px, 1.2vw, 27px);
-    }
-
-    .day-label {
-      font-size: clamp(20px, 1.35vw, 26px);
-    }
-
-    .hour-icon,
-    .day-icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .hour-icon {
-      width: 46px;
-      height: 46px;
-    }
-
-    .hour-icon.big-now {
-      width: 96px;
-      height: 96px;
-      margin-top: 0.25vh;
-    }
-
-    .hour-icon img {
-      width: 46px;
-      height: 46px;
-      object-fit: contain;
-      display: block;
-      filter: brightness(0) invert(1);
-      transform: translateY(1px);
-    }
-
-    .hour-icon.big-now img {
-      width: 96px;
-      height: 96px;
-    }
-
-    .hour-temp {
-      margin-top: 1vh;
-      min-height: 1.1em;
-      font-size: clamp(28px, 2vw, 40px);
-      line-height: 1;
-      color: #ffffff;
-      font-weight: 600;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    .hour-wind {
-      margin-top: 0.85vh;
-      min-height: 1.1em;
-      font-size: clamp(14px, 0.98vw, 18px);
-      line-height: 1;
-      color: rgba(255,255,255,0.80);
-      white-space: nowrap;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    .day-icon {
-      width: 46px;
-      height: 46px;
-    }
-
-    .day-icon img {
-      width: 42px;
-      height: 42px;
-      object-fit: contain;
-      display: block;
-      filter: brightness(0) invert(1);
-      transform: translateY(1px);
-    }
-
-    .day-minmax {
-      margin-top: 0.9vh;
-      font-size: clamp(18px, 1.15vw, 22px);
-      color: rgba(255,255,255,0.96);
-      line-height: 1.24;
-      min-height: 2.2em;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    /* ASTRO CARD */
-    .astro-grid {
-      display: grid;
-      grid-template-columns: 1.55fr 1fr;
-      align-items: center;
-      height: 100%;
-      gap: 0.8vw;
-    }
-
-    .astro-left,
-    .astro-right {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 110px;
-    }
-
-    .astro-right {
-      border-left: 1px solid rgba(255,255,255,0.16);
-      padding-left: 1.1vw;
-    }
-
-    .moon-showcase {
-      display: flex;
-      align-items: center;
-      gap: 1.2vw;
-      width: 100%;
-      justify-content: center;
-    }
-
-    .moon-wrap {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.84);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow:
-        0 0 20px rgba(255,255,255,0.05),
-        inset 0 0 0 1px rgba(255,255,255,0.06),
-        0 0 35px rgba(80,120,255,0.08);
-      flex-shrink: 0;
-    }
-
-    .moon {
-      width: 82px;
-      height: 82px;
-      border-radius: 50%;
-      background: url('./images/moon.jpg') center/cover no-repeat;
-      position: relative;
-      overflow: hidden;
-      filter: contrast(1.08) brightness(1.02);
-      box-shadow:
-        0 0 16px rgba(255,255,255,0.10),
-        0 0 26px rgba(255,255,255,0.05);
-    }
-
-    .moon-shadow {
-      position: absolute;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      border-radius: 50%;
-      transition: left 0.8s ease, width 0.8s ease;
-      pointer-events: none;
-    }
-
-    .moon-texts {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 0.45vh;
-      text-align: left;
-    }
-
-    .moon-phase-title {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(30px, 2vw, 40px);
-      line-height: 1.06;
-      color: rgba(255,255,255,0.98);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    .moon-sub {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(16px, 1vw, 20px);
-      color: rgba(255,255,255,0.72);
-      line-height: 1.1;
-      letter-spacing: 0.02em;
-    }
-
-    .zodiac-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.6vh;
-    }
-
-    .zodiac-box img {
-      width: 50px;
-      height: 50px;
-      object-fit: contain;
-      display: block;
-      filter: brightness(0) invert(1);
-    }
-
-    .zodiac-box .zodiac-name {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(28px, 1.8vw, 36px);
-      line-height: 1.06;
-      color: rgba(255,255,255,0.96);
-      text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    .zodiac-box .zodiac-label {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(14px, 0.9vw, 18px);
-      color: rgba(255,255,255,0.68);
-      line-height: 1.1;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-  </style>
+</style>
 </head>
+
 <body>
-  <div class="app" id="app">
-    <div class="bg" id="bg"></div>
-    <div class="overlay"></div>
 
-    <div class="stage">
-      <section class="left">
-        <h1 class="city">BRESCIA</h1>
-        <div class="condition" id="currentCondition">Caricamento…</div>
-        <div class="date" id="dateLine">—</div>
+<div class="left">
+  <div class="city">BRESCIA</div>
+  <div class="desc" id="desc"></div>
+  <div class="date" id="date"></div>
 
-        <div class="temp-block">
-          <div class="temp-main" id="currentTemp">--°</div>
-          <div class="minmax-line" id="minMaxLine">Min --° • Max --°</div>
-        </div>
+  <div class="temp" id="temp"></div>
+  <div class="minmax" id="minmax"></div>
 
-        <div class="bottom-meta">
-          <div class="bottom-line">
-            <img src="./icons/thermometer.svg" alt="">
-            <span id="feelsLikeText">Percepita --°</span>
-          </div>
+  <div class="bottom-left">
 
-          <div class="bottom-line">
-            <img src="./icons/humidity.svg" alt="">
-            <span id="humidityText">Umidità --%</span>
-          </div>
-
-          <div class="bottom-line" id="sunInfoLine">
-            <img id="sunInfoIcon" src="./icons/sunset.svg" alt="">
-            <span id="sunInfoText">Tramonto 19:59</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="right">
-        <div class="card hours-card">
-          <div class="hours-grid" id="hoursGrid"></div>
-        </div>
-
-        <div class="card days-card">
-          <div class="days-grid" id="daysGrid"></div>
-        </div>
-
-        <div class="card space-card astro-card">
-          <div class="astro-grid">
-            <div class="astro-left">
-              <div class="moon-showcase">
-                <div class="moon-wrap">
-                  <div class="moon">
-                    <div class="moon-shadow" id="moonShadow"></div>
-                  </div>
-                </div>
-                <div class="moon-texts">
-                  <div class="moon-phase-title" id="moonPhaseText">Ultimo quarto</div>
-                  <div class="moon-sub">Fase lunare</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="astro-right">
-              <div class="zodiac-box">
-                <img id="zodiacIcon" src="./zodiac/zodiac-aries.svg" alt="Aries">
-                <div class="zodiac-name" id="zodiacName">Aries</div>
-                <div class="zodiac-label">Segno zodiacale</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div class="line">
+      <img src="./icons/thermometer.svg">
+      <span id="feels"></span>
     </div>
+
+    <div class="line">
+      <img src="./icons/humidity.svg">
+      <span id="humidity"></span>
+    </div>
+
+    <div class="line uv" id="uvBox">
+      <img src="./icons/sun.svg">
+      <span id="uv"></span>
+    </div>
+
+    <div class="line air" id="airBox">
+      <img src="./icons/wind.svg">
+      <span>Aria</span>
+    </div>
+
+    <div class="line">
+      <img id="sunIcon">
+      <span id="sun"></span>
+    </div>
+
+  </div>
+</div>
+
+<div class="right">
+
+  <div class="box">
+    <div class="row" id="hours"></div>
   </div>
 
-  <script>
-    const BRESCIA = {
-      lat: 45.5416,
-      lon: 10.2118,
-      tz: 'Europe/Rome'
-    };
+  <div class="box astro">
 
-    const backgrounds = {
-      sereno: './images/sole-sereno.jpg',
-      pocoNuvoloso: './images/poco-nuvoloso.jpg',
-      nuvoloso: './images/nuvoloso.jpg',
-      pioggia: './images/pioggia.jpg',
-      temporale: './images/temporale.jpg',
-      notteSerena: './images/notte-serena.jpg',
-      notteNuvolosa: './images/notte-nuvolosa.jpg',
-      alba: './images/alba.jpg',
-      tramonto: './images/tramonto.jpg',
-      nebbia: './images/nebbia.jpg',
-      neve: './images/neve.jpg'
-    };
+    <div>
+      <div class="moon-circle">
+        <div id="moonShadow" class="moon-shadow"></div>
+      </div>
+      <div id="moonText"></div>
+    </div>
 
-    const zodiacAssets = {
-      Aries: './zodiac/zodiac-aries.svg',
-      Taurus: './zodiac/zodiac-taurus.svg',
-      Gemini: './zodiac/zodiac-gemini.svg',
-      Cancer: './zodiac/zodiac-cancer.svg',
-      Leo: './zodiac/zodiac-leo.svg',
-      Virgo: './zodiac/zodiac-virgo.svg',
-      Libra: './zodiac/zodiac-libra.svg',
-      Scorpio: './zodiac/zodiac-scorpio.svg',
-      Sagittarius: './zodiac/zodiac-sagittarius.svg',
-      Capricorn: './zodiac/zodiac-capricorn.svg',
-      Aquarius: './zodiac/zodiac-aquarius.svg',
-      Pisces: './zodiac/zodiac-pisces.svg'
-    };
+    <div>
+      <div class="zodiac-circle">
+        <img id="zodiacIcon">
+      </div>
+      <div id="zodiacText"></div>
+    </div>
 
-    function pad(num) {
-      return String(num).padStart(2, '0');
-    }
+  </div>
 
-    function formatDateItalian(date) {
-      const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-      const mesi = ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
-      return `${giorni[date.getDay()]} ${date.getDate()} ${mesi[date.getMonth()]}`;
-    }
+</div>
 
-    function formatHour(date) {
-      return pad(date.getHours());
-    }
+<script>
 
-    function weekdayName(dateString) {
-      const giorni = ['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-      const d = new Date(dateString + 'T12:00:00');
-      return giorni[d.getDay()];
-    }
+const lat = 45.5416;
+const lon = 10.2118;
 
-    function getWeatherIcon(code, isDay) {
-      if (code === 0) return isDay ? 'sun.svg' : 'moon.svg';
-      if ([1, 2].includes(code)) return isDay ? 'partly-cloudy.svg' : 'cloudy-night.svg';
-      if (code === 3) return 'cloudy.svg';
-      if ([45, 48].includes(code)) return 'cloudy.svg';
-      if ([51, 53, 55].includes(code)) return 'light-rain.svg';
-      if ([61, 63, 65, 80, 81, 82].includes(code)) return 'rain.svg';
-      if ([71, 73, 75, 77, 85, 86].includes(code)) return 'snow.svg';
-      if ([95, 96, 99].includes(code)) return 'storm.svg';
-      return 'cloudy.svg';
-    }
+function getWeatherIcon(code){
+  if(code===0) return "sun.svg";
+  if(code<=2) return "partly-cloudy.svg";
+  if(code===3) return "cloud.svg";
+  if(code<60) return "cloud.svg";
+  if(code<70) return "rain.svg";
+  if(code<80) return "snow.svg";
+  return "storm.svg";
+}
 
-    function getBackgroundKey(code, isDay, now, sunrise, sunset) {
-      const mins = now.getHours() * 60 + now.getMinutes();
-      const sunriseM = sunrise.getHours() * 60 + sunrise.getMinutes();
-      const sunsetM = sunset.getHours() * 60 + sunset.getMinutes();
+/* MOON CALC */
+function getMoonPhase(){
+  const now = new Date();
+  const synodicMonth = 29.53;
+  const knownNewMoon = new Date("2000-01-06");
+  const days = (now - knownNewMoon) / 86400000;
+  const phase = (days % synodicMonth) / synodicMonth;
 
-      if (mins >= sunriseM - 30 && mins <= sunriseM + 40) return 'alba';
-      if (mins >= sunsetM - 40 && mins <= sunsetM + 30) return 'tramonto';
+  if(phase < 0.03 || phase > 0.97) return ["Luna Nuova",0,100];
+  if(phase < 0.25) return ["Crescente",20,100];
+  if(phase < 0.5) return ["Primo Quarto",50,100];
+  if(phase < 0.75) return ["Ultimo Quarto",-50,100];
+  return ["Calante",-20,100];
+}
 
-      if (!isDay) {
-        if (code === 0 || code === 1) return 'notteSerena';
-        return 'notteNuvolosa';
-      }
+/* ZODIAC */
+function getZodiac(){
+  const d = new Date();
+  const m = d.getMonth()+1;
+  const day = d.getDate();
 
-      if (code === 0 || code === 1) return 'sereno';
-      if (code === 2) return 'pocoNuvoloso';
-      if (code === 3) return 'nuvoloso';
-      if ([45, 48].includes(code)) return 'nebbia';
-      if ([71, 73, 75, 77, 85, 86].includes(code)) return 'neve';
-      if ([95, 96, 99].includes(code)) return 'temporale';
-      if ([51,53,55,61,63,65,80,81,82].includes(code)) return 'pioggia';
+  if((m==3 && day>=21)||(m==4 && day<=19)) return "aries";
+  if((m==4 && day>=20)||(m==5 && day<=20)) return "taurus";
+  return "aries";
+}
 
-      return 'pocoNuvoloso';
-    }
+async function load(){
 
-    function getConditionText(code) {
-      const map = {
-        0: 'Sereno',
-        1: 'Prevalentemente sereno',
-        2: 'Parzialmente nuvoloso',
-        3: 'Nuvoloso',
-        45: 'Nebbia',
-        48: 'Nebbia',
-        51: 'Pioggia leggera',
-        53: 'Pioggia',
-        55: 'Pioggia intensa',
-        61: 'Pioggia',
-        63: 'Pioggia',
-        65: 'Pioggia intensa',
-        71: 'Neve',
-        73: 'Neve',
-        75: 'Neve intensa',
-        77: 'Neve',
-        80: 'Rovesci',
-        81: 'Rovesci',
-        82: 'Forti rovesci',
-        95: 'Temporale',
-        96: 'Temporale',
-        99: 'Temporale forte'
-      };
-      return map[code] || 'Parzialmente nuvoloso';
-    }
+const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,uv_index&hourly=temperature_2m,weather_code&daily=sunrise,sunset,temperature_2m_min,temperature_2m_max&timezone=auto`);
+const data = await w.json();
 
-    function applyBackgroundLighting(now, sunrise, sunset, bgKey) {
-      const bg = document.getElementById('bg');
+const air = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`);
+const airData = await air.json();
 
-      const mins = now.getHours() * 60 + now.getMinutes();
-      const sunriseM = sunrise.getHours() * 60 + sunrise.getMinutes();
-      const sunsetM = sunset.getHours() * 60 + sunset.getMinutes();
+/* DATE */
+const now = new Date();
+document.getElementById("date").innerText = now.toLocaleDateString("it-IT",{weekday:'long',day:'numeric',month:'long'});
 
-      let brightness = 1;
-      let saturate = 1;
+/* TEMP */
+document.getElementById("temp").innerText = Math.round(data.current.temperature_2m)+"°";
+document.getElementById("feels").innerText = "Percepita "+Math.round(data.current.apparent_temperature)+"°";
+document.getElementById("humidity").innerText = "Umidità "+data.current.relative_humidity_2m+"%";
+document.getElementById("minmax").innerText = "Min "+Math.round(data.daily.temperature_2m_min[0])+"° • Max "+Math.round(data.daily.temperature_2m_max[0])+"°";
 
-      if (mins < sunriseM - 30) {
-        brightness = 0.52;
-        saturate = 0.95;
-      } else if (mins <= sunriseM + 40) {
-        brightness = 0.92;
-        saturate = 1.06;
-      } else if (mins < sunsetM - 90) {
-        brightness = 1.04;
-        saturate = 1.02;
-      } else if (mins <= sunsetM + 30) {
-        brightness = 0.82;
-        saturate = 1.06;
-      } else {
-        brightness = 0.58;
-        saturate = 0.96;
-      }
+/* DESC */
+document.getElementById("desc").innerText = "Condizione meteo";
 
-      if (bgKey === 'temporale' || bgKey === 'pioggia') brightness -= 0.08;
-      if (bgKey === 'nebbia') brightness += 0.04;
+/* UV */
+let uv = data.current.uv_index;
+let uvBox = document.getElementById("uvBox");
+if(uv<3) uvBox.classList.add("low");
+else if(uv<6) uvBox.classList.add("medium");
+else uvBox.classList.add("high");
+document.getElementById("uv").innerText = "UV "+uv;
 
-      bg.style.filter = `brightness(${brightness}) saturate(${saturate})`;
-    }
+/* AIR */
+let aqi = airData.current.us_aqi;
+let airBox = document.getElementById("airBox");
+if(aqi<50) airBox.classList.add("good");
+else if(aqi<100) airBox.classList.add("medium");
+else airBox.classList.add("bad");
 
-    function getMoonInfo(date = new Date()) {
-      const synodicMonth = 29.53058867;
-      const knownNewMoon = new Date('2000-01-06T18:14:00Z').getTime();
+/* SUN */
+let sunrise = new Date(data.daily.sunrise[0]);
+let sunset = new Date(data.daily.sunset[0]);
 
-      const nowMs = date.getTime();
-      const daysSince = (nowMs - knownNewMoon) / 86400000;
-      const age = ((daysSince % synodicMonth) + synodicMonth) % synodicMonth;
-      const phase = age / synodicMonth;
+if(now<sunrise){
+  document.getElementById("sunIcon").src="./icons/sunrise.svg";
+  document.getElementById("sun").innerText="Alba "+sunrise.toLocaleTimeString().slice(0,5);
+}else{
+  document.getElementById("sunIcon").src="./icons/sunset.svg";
+  document.getElementById("sun").innerText="Tramonto "+sunset.toLocaleTimeString().slice(0,5);
+}
 
-      let phaseName = 'Luna nuova';
-      let shadowLeft = 0;
-      let shadowWidth = 100;
+/* HOURS */
+let hDiv=document.getElementById("hours");
+hDiv.innerHTML="";
+for(let i=0;i<5;i++){
+  let el=document.createElement("div");
+  el.className="hour";
+  if(i===0) el.classList.add("hour-now");
 
-      if (phase < 0.0625 || phase >= 0.9375) {
-        phaseName = 'Luna nuova';
-        shadowLeft = 0;
-        shadowWidth = 100;
-      } else if (phase < 0.1875) {
-        phaseName = 'Mezzaluna crescente';
-        shadowLeft = 16;
-        shadowWidth = 100;
-      } else if (phase < 0.3125) {
-        phaseName = 'Primo quarto';
-        shadowLeft = 50;
-        shadowWidth = 100;
-      } else if (phase < 0.4375) {
-        phaseName = 'Luna crescente';
-        shadowLeft = 78;
-        shadowWidth = 100;
-      } else if (phase < 0.5625) {
-        phaseName = 'Luna piena';
-        shadowLeft = 100;
-        shadowWidth = 100;
-      } else if (phase < 0.6875) {
-        phaseName = 'Luna calante';
-        shadowLeft = -78;
-        shadowWidth = 100;
-      } else if (phase < 0.8125) {
-        phaseName = 'Ultimo quarto';
-        shadowLeft = -50;
-        shadowWidth = 100;
-      } else {
-        phaseName = 'Mezzaluna calante';
-        shadowLeft = -16;
-        shadowWidth = 100;
-      }
+  let code=data.hourly.weather_code[i];
+  let icon=getWeatherIcon(code);
 
-      return { phaseName, shadowLeft, shadowWidth };
-    }
+  el.innerHTML=`
+    <div>${i===0?"Adesso":new Date(data.hourly.time[i]).getHours()}</div>
+    <img src="./icons/${icon}">
+    ${i===0?"":`<div>${Math.round(data.hourly.temperature_2m[i])}°</div>`}
+  `;
+  hDiv.appendChild(el);
+}
 
-    function zodiacForDate(date = new Date()) {
-      const m = date.getMonth() + 1;
-      const d = date.getDate();
+/* MOON */
+let [name,left,width]=getMoonPhase();
+document.getElementById("moonText").innerText=name;
+let shadow=document.getElementById("moonShadow");
+shadow.style.left=left+"%";
+shadow.style.width=width+"%";
 
-      const zodiacs = [
-        { start: [3, 21], end: [4, 19], name: 'Aries' },
-        { start: [4, 20], end: [5, 20], name: 'Taurus' },
-        { start: [5, 21], end: [6, 20], name: 'Gemini' },
-        { start: [6, 21], end: [7, 22], name: 'Cancer' },
-        { start: [7, 23], end: [8, 22], name: 'Leo' },
-        { start: [8, 23], end: [9, 22], name: 'Virgo' },
-        { start: [9, 23], end: [10, 22], name: 'Libra' },
-        { start: [10, 23], end: [11, 21], name: 'Scorpio' },
-        { start: [11, 22], end: [12, 21], name: 'Sagittarius' },
-        { start: [12, 22], end: [1, 19], name: 'Capricorn' },
-        { start: [1, 20], end: [2, 18], name: 'Aquarius' },
-        { start: [2, 19], end: [3, 20], name: 'Pisces' }
-      ];
+/* ZODIAC */
+let z=getZodiac();
+document.getElementById("zodiacIcon").src="./zodiac/zodiac-"+z+".svg";
+document.getElementById("zodiacText").innerText=z.charAt(0).toUpperCase()+z.slice(1);
 
-      for (const z of zodiacs) {
-        const [sm, sd] = z.start;
-        const [em, ed] = z.end;
-        if (sm <= em) {
-          if ((m === sm && d >= sd) || (m === em && d <= ed) || (m > sm && m < em)) return z;
-        } else {
-          if ((m === sm && d >= sd) || (m === em && d <= ed) || (m > sm || m < em)) return z;
-        }
-      }
-      return { name: 'Aries' };
-    }
+}
 
-    function updateLeftAndAstro(sunrise, sunset) {
-      const now = new Date();
-      const moon = getMoonInfo(now);
-      const zodiac = zodiacForDate(now);
+load();
+setInterval(load,600000);
 
-      document.getElementById('moonPhaseText').textContent = moon.phaseName;
-      document.getElementById('moonShadow').style.left = `${moon.shadowLeft}%`;
-      document.getElementById('moonShadow').style.width = `${moon.shadowWidth}%`;
+</script>
 
-      document.getElementById('zodiacIcon').src = zodiacAssets[zodiac.name];
-      document.getElementById('zodiacName').textContent = zodiac.name;
-
-      const sunInfoIcon = document.getElementById('sunInfoIcon');
-      const sunInfoText = document.getElementById('sunInfoText');
-
-      const nowTime = now.getTime();
-      const sunriseTime = sunrise.getTime();
-      const sunsetTime = sunset.getTime();
-
-      if (nowTime < sunriseTime) {
-        sunInfoIcon.src = './icons/sunrise.svg';
-        sunInfoText.textContent = `Alba ${pad(sunrise.getHours())}:${pad(sunrise.getMinutes())}`;
-      } else if (nowTime < sunsetTime) {
-        sunInfoIcon.src = './icons/sunset.svg';
-        sunInfoText.textContent = `Tramonto ${pad(sunset.getHours())}:${pad(sunset.getMinutes())}`;
-      } else {
-        sunInfoIcon.src = './icons/sunrise.svg';
-        sunInfoText.textContent = `Alba ${pad(sunrise.getHours())}:${pad(sunrise.getMinutes())}`;
-      }
-    }
-
-    function renderHours(items) {
-      const grid = document.getElementById('hoursGrid');
-      grid.innerHTML = '';
-
-      items.forEach((item, index) => {
-        const col = document.createElement('div');
-        col.className = 'hour-col';
-
-        if (index === 0) {
-          col.innerHTML = `
-            <div class="hour-label">Adesso</div>
-            <div class="hour-icon big-now"><img src="./icons/${item.icon}" alt=""></div>
-          `;
-        } else {
-          col.innerHTML = `
-            <div class="hour-label">${item.label}</div>
-            <div class="hour-icon"><img src="./icons/${item.icon}" alt=""></div>
-            <div class="hour-temp">${item.temp}°</div>
-            <div class="hour-wind">${item.wind} km/h</div>
-          `;
-        }
-
-        grid.appendChild(col);
-      });
-    }
-
-    function renderDays(data) {
-      const grid = document.getElementById('daysGrid');
-      grid.innerHTML = '';
-
-      for (let i = 1; i <= 5; i++) {
-        const label = weekdayName(data.daily.time[i]);
-        const icon = getWeatherIcon(data.daily.weather_code[i], true);
-        const min = Math.round(data.daily.temperature_2m_min[i]);
-        const max = Math.round(data.daily.temperature_2m_max[i]);
-
-        const col = document.createElement('div');
-        col.className = 'day-col';
-        col.innerHTML = `
-          <div class="day-label">${label}</div>
-          <div class="day-icon"><img src="./icons/${icon}" alt=""></div>
-          <div class="day-minmax">Min ${min}°<br>Max ${max}°</div>
-        `;
-        grid.appendChild(col);
-      }
-    }
-
-    async function init() {
-      try {
-        const weatherUrl =
-          `https://api.open-meteo.com/v1/forecast?latitude=${BRESCIA.lat}&longitude=${BRESCIA.lon}` +
-          `&timezone=${encodeURIComponent(BRESCIA.tz)}` +
-          `&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day` +
-          `&hourly=temperature_2m,weather_code,wind_speed_10m` +
-          `&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset`;
-
-        const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
-        if (!weatherRes.ok) throw new Error('Errore meteo');
-
-        const data = await weatherRes.json();
-        if (!data.hourly || !data.hourly.time) throw new Error('Dati hourly mancanti');
-
-        const now = new Date();
-        const sunrise = new Date(data.daily.sunrise[0]);
-        const sunset = new Date(data.daily.sunset[0]);
-
-        document.getElementById('currentCondition').textContent = getConditionText(data.current.weather_code);
-        document.getElementById('dateLine').textContent = formatDateItalian(now);
-        document.getElementById('currentTemp').textContent = `${Math.round(data.current.temperature_2m)}°`;
-        document.getElementById('minMaxLine').textContent =
-          `Min ${Math.round(data.daily.temperature_2m_min[0])}° • Max ${Math.round(data.daily.temperature_2m_max[0])}°`;
-
-        document.getElementById('feelsLikeText').textContent =
-          `Percepita ${Math.round(data.current.apparent_temperature)}°`;
-
-        document.getElementById('humidityText').textContent =
-          `Umidità ${Math.round(data.current.relative_humidity_2m)}%`;
-
-        const bgKey = getBackgroundKey(
-          data.current.weather_code,
-          data.current.is_day === 1,
-          now,
-          sunrise,
-          sunset
-        );
-
-        document.getElementById('bg').style.backgroundImage = `url('${backgrounds[bgKey]}')`;
-        applyBackgroundLighting(now, sunrise, sunset, bgKey);
-
-        const times = data.hourly.time.map(t => new Date(t));
-        let startIdx = times.findIndex(t => t.getHours() === now.getHours() && t.getDate() === now.getDate());
-        if (startIdx < 0) startIdx = 0;
-
-        const hourlyItems = [
-          {
-            label: 'Adesso',
-            icon: getWeatherIcon(data.current.weather_code, data.current.is_day === 1),
-            temp: Math.round(data.current.temperature_2m),
-            wind: Math.round(data.current.wind_speed_10m)
-          }
-        ];
-
-        for (let i = 1; i < 5; i++) {
-          const idx = Math.min(startIdx + i, times.length - 1);
-          const t = times[idx];
-          const isDayForHour = t >= sunrise && t < sunset;
-
-          hourlyItems.push({
-            label: formatHour(t),
-            icon: getWeatherIcon(data.hourly.weather_code[idx], isDayForHour),
-            temp: Math.round(data.hourly.temperature_2m[idx]),
-            wind: Math.round(data.hourly.wind_speed_10m[idx])
-          });
-        }
-
-        renderHours(hourlyItems);
-        renderDays(data);
-        updateLeftAndAstro(sunrise, sunset);
-
-        document.getElementById('app').classList.add('ready');
-      } catch (err) {
-        console.error(err);
-        document.getElementById('currentCondition').textContent = 'Meteo non disponibile';
-        document.getElementById('app').classList.add('ready');
-      }
-    }
-
-    init();
-    setInterval(init, 10 * 60 * 1000);
-  </script>
 </body>
 </html>

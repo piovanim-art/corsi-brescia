@@ -1,4 +1,4 @@
-tu<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
@@ -120,7 +120,6 @@ tu<!DOCTYPE html>
       opacity: 1;
     }
 
-    /* LEFT */
     .left {
       display: flex;
       flex-direction: column;
@@ -221,7 +220,6 @@ tu<!DOCTYPE html>
       filter: brightness(0) saturate(100%) invert(34%) sepia(92%) saturate(1612%) hue-rotate(343deg) brightness(102%) contrast(96%);
     }
 
-    /* RIGHT */
     .right {
       display: flex;
       flex-direction: column;
@@ -402,7 +400,6 @@ tu<!DOCTYPE html>
       text-shadow: 0 2px 8px rgba(0,0,0,0.18);
     }
 
-    /* ASTRO CARD */
     .astro-grid {
       display: grid;
       grid-template-columns: 1.55fr 1fr;
@@ -475,7 +472,7 @@ tu<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 0.45vh;
+      gap: 0;
       text-align: left;
     }
 
@@ -486,14 +483,6 @@ tu<!DOCTYPE html>
       color: rgba(255,255,255,0.98);
       text-shadow: 0 2px 8px rgba(0,0,0,0.18);
       text-transform: none;
-    }
-
-    .moon-sub {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(16px, 1vw, 20px);
-      color: rgba(255,255,255,0.72);
-      line-height: 1.1;
-      letter-spacing: 0.02em;
     }
 
     .zodiac-wrap {
@@ -529,7 +518,7 @@ tu<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 0.45vh;
+      gap: 0;
       text-align: left;
     }
 
@@ -539,14 +528,6 @@ tu<!DOCTYPE html>
       line-height: 1.06;
       color: rgba(255,255,255,0.98);
       text-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    }
-
-    .zodiac-label {
-      font-family: 'GothamXLight', Arial, sans-serif;
-      font-size: clamp(16px, 1vw, 20px);
-      color: rgba(255,255,255,0.72);
-      line-height: 1.1;
-      letter-spacing: 0.02em;
     }
   </style>
 </head>
@@ -614,7 +595,6 @@ tu<!DOCTYPE html>
                 </div>
                 <div class="moon-texts">
                   <div class="moon-phase-title" id="moonPhaseText">Ultimo Quarto</div>
-                  <div class="moon-sub">Fase Lunare</div>
                 </div>
               </div>
             </div>
@@ -626,7 +606,6 @@ tu<!DOCTYPE html>
                 </div>
                 <div class="zodiac-texts">
                   <div class="zodiac-name" id="zodiacName">Aries</div>
-                  <div class="zodiac-label">Segno zodiacale</div>
                 </div>
               </div>
             </div>
@@ -796,44 +775,38 @@ tu<!DOCTYPE html>
       const nowMs = date.getTime();
       const daysSince = (nowMs - knownNewMoon) / 86400000;
       const age = ((daysSince % synodicMonth) + synodicMonth) % synodicMonth;
-      const phase = age / synodicMonth;
 
       let phaseName = 'Luna Nuova';
       let shadowLeft = 0;
       let shadowWidth = 100;
 
-      if (phase < 0.0625 || phase >= 0.9375) {
+      if (age < 1.84566) {
         phaseName = 'Luna Nuova';
         shadowLeft = 0;
-        shadowWidth = 100;
-      } else if (phase < 0.1875) {
+      } else if (age < 5.53699) {
         phaseName = 'Mezzaluna crescente';
-        shadowLeft = 16;
-        shadowWidth = 100;
-      } else if (phase < 0.3125) {
+        shadowLeft = 20;
+      } else if (age < 9.22831) {
         phaseName = 'Primo Quarto';
         shadowLeft = 50;
-        shadowWidth = 100;
-      } else if (phase < 0.4375) {
+      } else if (age < 12.91963) {
         phaseName = 'Luna crescente';
-        shadowLeft = 78;
-        shadowWidth = 100;
-      } else if (phase < 0.5625) {
+        shadowLeft = 75;
+      } else if (age < 16.61096) {
         phaseName = 'Luna Piena';
         shadowLeft = 100;
-        shadowWidth = 100;
-      } else if (phase < 0.6875) {
+      } else if (age < 20.30228) {
         phaseName = 'Luna calante';
-        shadowLeft = -78;
-        shadowWidth = 100;
-      } else if (phase < 0.8125) {
+        shadowLeft = -75;
+      } else if (age < 23.99361) {
         phaseName = 'Ultimo Quarto';
         shadowLeft = -50;
-        shadowWidth = 100;
-      } else {
+      } else if (age < 27.68493) {
         phaseName = 'Mezzaluna calante';
-        shadowLeft = -16;
-        shadowWidth = 100;
+        shadowLeft = -20;
+      } else {
+        phaseName = 'Luna Nuova';
+        shadowLeft = 0;
       }
 
       return { phaseName, shadowLeft, shadowWidth };
